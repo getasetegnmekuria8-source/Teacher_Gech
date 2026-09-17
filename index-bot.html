@@ -1,0 +1,1591 @@
+<!DOCTYPE html>
+<html lang="am">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="title_text">የተማሪዎች መዝገብ፣ የወላጅ ፖርታል እና የአድሚን ቁጥጥር</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; background-color: #f0f4f8; margin: 0; padding: 15px; }
+        .container { max-width: 950px; background: #ffffff; margin: 0 auto; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 6px solid #2c3e50; }
+        
+        /* 🌐 የቋንቋ መቀየሪያ Style */
+        .lang-switch-container { display: flex; justify-content: flex-end; margin-bottom: 10px; }
+        .btn-lang { background-color: #0284c7; color: white; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; cursor: pointer; transition: 0.3s; font-size: 14px; outline: none; }
+        .btn-lang option { background-color: #ffffff; color: #333333; font-weight: normal; }
+
+        .portal-tabs { display: flex; gap: 8px; margin-bottom: 20px; position: relative; flex-wrap: wrap; }
+        .portal-btn { flex: 1; padding: 12px; border: none; background: #e2e8f0; cursor: pointer; font-size: 15px; font-weight: bold; color: #334155; border-radius: 6px; transition: 0.3s; position: relative; min-width: 140px; }
+        .portal-btn.active-portal { background: #2c3e50; color: #ffffff; }
+        .portal-btn.admin-tab { background: #7c2d12; color: #fff; }
+        .portal-btn.admin-tab.active-portal { background: #ea580c; }
+
+        /* 🔔 የወላጅ ኖቲፊኬሽን ባጅ (Badge) Style */
+        .noti-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background-color: #ef4444;
+            color: white;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 50%;
+            font-weight: bold;
+            display: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        .school-header { background: #1e293b; color: white; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px; }
+        .school-header select { width: 100%; max-width: 450px; padding: 10px; margin-top: 8px; border-radius: 5px; border: none; font-size: 15px; font-weight: bold; color: #1e293b; }
+
+        .filter-card { background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #cbd5e1; margin-bottom: 20px; }
+        .row { display: flex; gap: 10px; flex-wrap: wrap; }
+        .row .form-group { flex: 1; min-width: 180px; }
+        
+        .form-group { margin-bottom: 12px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #334155; font-size: 14px; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #cbd5e1; border-radius: 5px; box-sizing: border-box; font-size: 14px; }
+        
+        /* የመምህሩ መረጃ መመዝገቢያ ካርድ */
+        .teacher-info-card {
+            background-color: #f0f9ff;
+            border: 2px dashed #0284c7;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .teacher-info-card h4 { margin-top: 0; color: #0369a1; }
+
+        /* የመምህሩ መልዕክት መላኪያ ካርድ */
+        .teacher-msg-card {
+            background-color: #fdf4ff;
+            border: 2px solid #c084fc;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .teacher-msg-card h4 { margin-top: 0; color: #7e22ce; }
+
+        /* 📣 በወላጁ ገጽ ላይ የሚታይ የመምህሩ መልዕክት ማሳያ (Notification Banner) */
+        .parent-noti-banner {
+            background-color: #fef2f2;
+            border: 2px solid #f87171;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+            box-shadow: 0 4px 10px rgba(239, 68, 68, 0.15);
+        }
+        .parent-noti-banner h4 { margin-top: 0; color: #991b1b; display: flex; align-items: center; gap: 8px; }
+
+        .msg-type-tabs { display: flex; gap: 10px; margin-bottom: 15px; }
+        .msg-type-btn { flex: 1; padding: 10px; border: 1px solid #c084fc; background: #fff; cursor: pointer; font-size: 14px; font-weight: bold; color: #7e22ce; border-radius: 5px; }
+        .msg-type-btn.active { background: #9333ea; color: #fff; }
+
+        .btn-blue { background-color: #0284c7; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; font-size: 15px; }
+        .btn-purple { background-color: #9333ea; color: white; border: none; padding: 12px; border-radius: 5px; cursor: pointer; font-weight: bold; width: 100%; font-size: 15px; }
+
+        .sub-tab-buttons { display: flex; gap: 10px; margin-bottom: 15px; }
+        .sub-tab-btn { flex: 1; padding: 8px; border: 1px solid #cbd5e1; background: #f1f5f9; cursor: pointer; font-size: 13px; font-weight: bold; color: #475569; border-radius: 4px; }
+        .sub-tab-btn.active { background: #059669; color: #fff; border-color: #059669; }
+
+        .btn { background-color: #2563eb; color: white; padding: 12px; border: none; border-radius: 5px; cursor: pointer; font-size: 15px; font-weight: bold; width: 100%; margin-top: 8px; transition: 0.2s; }
+        .btn:hover { opacity: 0.9; }
+        .btn-del { background-color: #dc2626; color: white; border: none; padding: 6px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; }
+
+        .copy-paste-box { background: #fff7ed; border: 1px dashed #ea580c; padding: 15px; border-radius: 6px; margin-bottom: 20px; }
+        
+        .payment-box { background: #f0fdf4; border: 2px solid #16a34a; padding: 18px; border-radius: 8px; margin-bottom: 20px; }
+        .pay-btn-group { display: flex; gap: 10px; margin: 10px 0; }
+        .pay-link { flex: 1; text-align: center; background: #16a34a; color: white; padding: 10px; text-decoration: none; font-weight: bold; border-radius: 5px; }
+        .pay-link.cbe { background: #8b5cf6; }
+
+        .voice-box { background: #ffffff; border: 1px solid #cbd5e1; padding: 15px; border-radius: 8px; margin-bottom: 15px; text-align: center; }
+        .voice-controls { display: flex; gap: 10px; justify-content: center; margin-bottom: 10px; flex-wrap: wrap; }
+        .btn-record { background-color: #ef4444; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .btn-stop { background-color: #475569; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .btn-perm { background-color: #059669; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-weight: bold; cursor: pointer; }
+        .btn-perm.off { background-color: #dc2626; }
+        .recording-status { font-weight: bold; color: #ef4444; margin-top: 5px; font-size: 13px; }
+
+        /* 🔐 የአድሚን ሳጥን Styles */
+        .admin-login-box {
+            background-color: #fff7ed;
+            border: 2px solid #ea580c;
+            padding: 25px;
+            border-radius: 8px;
+            text-align: center;
+            max-width: 400px;
+            margin: 30px auto;
+        }
+        .admin-panel-box {
+            background-color: #f8fafc;
+            border: 2px solid #475569;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+        th, td { border: 1px solid #e2e8f0; padding: 10px; text-align: left; font-size: 14px; }
+        th { background-color: #1e293b; color: white; }
+        tr:nth-child(even) { background-color: #f8fafc; }
+        .badge-male { background-color: #0284c7; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; }
+        .badge-female { background-color: #db2777; color: white; padding: 3px 8px; border-radius: 12px; font-size: 11px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- 🌐 የቋንቋ መቀየሪያ ድሮፕዳውን (አማርኛ / English / Afaan Oromoo) -->
+    <div class="lang-switch-container">
+        <select class="btn-lang" id="lang_select" onchange="changeLanguage(this.value)">
+            <option value="am">🌐 አማርኛ</option>
+            <option value="en">🌐 English</option>
+            <option value="om">🌐 Afaan Oromoo</option>
+        </select>
+    </div>
+
+    <!-- የትምህርት ቤት መምረጫ -->
+    <div class="school-header">
+        <label id="lbl_select_school" style="font-size: 16px; display: block;">🏫 ትምህርት ቤት ይምረጡ፡</label>
+        <select id="select_school" onchange="refreshPortal()">
+            <option value="ሰፈረ ሰላም አንደኛ ደረጃ ት/ቤት">ሰፈረ ሰላም አንደኛ ደረጃ ት/ቤት</option>
+            <option value="ምርጫዬ ዕውቀት አንደኛ ደረጃ ት/ቤት">ምርጫዬ ዕውቀት አንደኛ ደረጃ ት/ቤት</option>
+            <option value="ቀስተደመና አንደኛ ደረጃ ት/ቤት">ቀስተደመና አንደኛ ደረጃ ት/ቤት</option>
+            <option value="ብርሀን በር አንደኛ ደረጃ ት/ቤት">ብርሀን በር አንደኛ ደረጃ ት/ቤት</option>
+            <option value="ሐምሌ 19 አንደኛ ደረጃ ት/ቤት">ሐምሌ 19 አንደኛ ደረጃ ት/ቤት</option>
+        </select>
+    </div>
+
+    <!-- ዋና ዋና የመግቢያ ታቦች -->
+    <div class="portal-tabs">
+        <button id="tab_teacher_btn" class="portal-btn active-portal" onclick="switchPortal('teacher')">👨‍🏫 የተማሪዎች እና ክፍል ኃላፊ መዝገብ</button>
+        <button id="tab_parent_btn" class="portal-btn" onclick="switchPortal('parent')">
+            ✉️ መልዕክት መላኪያ (ወላጅ)
+            <span id="parent_noti_badge" class="noti-badge">1</span>
+        </button>
+        <button id="tab_admin_btn" class="portal-btn admin-tab" onclick="switchPortal('admin')">🔒 አድሚን (Admin)</button>
+    </div>
+
+    <!-- 1. የመምህሩ ክፍል (TEACHER SECTION) -->
+    <div id="teacher_portal">
+        <div class="filter-card">
+            <h4 id="lbl_filter_title" style="margin-top:0; color:#dc2626;">📌 ክፍል እና ሴክሽን ይምረጡ፡</h4>
+            <div class="row">
+                <div class="form-group">
+                    <select id="t_select_grade" onchange="loadTeacherData()">
+                        <option value="1ኛ">1ኛ ክፍል</option><option value="2ኛ">2ኛ ክፍል</option>
+                        <option value="3ኛ">3ኛ ክፍል</option><option value="4ኛ">4ኛ ክፍል</option>
+                        <option value="5ኛ">5ኛ ክፍል</option><option value="6ኛ">6ኛ ክፍል</option>
+                        <option value="7ኛ">7ኛ ክፍል</option><option value="8ኛ">8ኛ ክፍል</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <select id="t_select_section" onchange="loadTeacherData()">
+                        <option value="A">ሴክሽን A</option><option value="B">ሴክሽን B</option>
+                        <option value="C">ሴክሽን C</option><option value="D">ሴክሽን D</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="teacher-info-card">
+            <h4 id="lbl_homeroom_title">🧑‍🏫 የዚህ ክፍል ኃላፊ መምህር መረጃ</h4>
+            <div class="row">
+                <div class="form-group">
+                    <label id="lbl_teacher_name">የክፍል ኃላፊ መምህር ሙሉ ስም፡</label>
+                    <input type="text" id="homeroom_teacher_name" placeholder="ምሳሌ፡ መምህር አላሙ ተሬ">
+                </div>
+                <div class="form-group">
+                    <label id="lbl_teacher_subject">የሚያስተምሩት የት/ት ዓይነት፡</label>
+                    <input type="text" id="homeroom_teacher_subject" placeholder="ምሳሌ፡ ሂሳብ / አካባቢ ሳይንስ">
+                </div>
+            </div>
+            <button class="btn-blue" id="btn_save_homeroom" onclick="saveHomeroomTeacher()">የመምህሩን መረጃ መዝግብ / አዘምን</button>
+        </div>
+
+        <div class="teacher-msg-card">
+            <h4 id="lbl_teacher_msg_title">✉️ የመምህሩ መልዕክት መላኪያ</h4>
+            
+            <div class="msg-type-tabs">
+                <button type="button" class="msg-type-btn active" id="btn_msg_bulk" onclick="switchTeacherMsgType('bulk')">📢 በጅምላ (ለክፉሉ ወላጆች በሙሉ)</button>
+                <button type="button" class="msg-type-btn" id="btn_msg_single" onclick="switchTeacherMsgType('single')">👤 በነጠላ (ለአንድ ተማሪ ወላጅ)</button>
+            </div>
+
+            <div class="form-group" id="single_student_msg_select" style="display: none;">
+                <label id="lbl_select_target_student" style="color:#7e22ce;">🎯 መልዕክቱ የሚላክለት ተማሪ ይምረጡ፡</label>
+                <select id="t_target_student">
+                    <option value="">-- አስቀድመው ተማሪ ይምረጡ --</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label id="lbl_teacher_text_msg">📝 የመልዕክቱ ርዕስ / ይዘት (በጽሁፍ)፡</label>
+                <textarea id="teacher_msg_text" rows="3" placeholder="ምሳሌ፦ መልዕክትዎን እዚህ ይፃፉ..."></textarea>
+            </div>
+
+            <div class="voice-box">
+                <label id="lbl_t_voice_title" style="margin-bottom:8px;">🎙️ በድምፅ መልዕክት ለማስተላለፍ፦</label>
+                <div class="voice-controls">
+                    <button type="button" class="btn-perm" id="t_perm_btn" onclick="toggleTeacherMicPermission()">🎙️ ፈቃድ ስጥ (Mic ON)</button>
+                    <button type="button" class="btn-record" id="t_start_rec_btn" onclick="startTeacherRecording()">🎙️ ሪከርድ ጀምር</button>
+                    <button type="button" class="btn-stop" id="t_stop_rec_btn" onclick="stopTeacherRecording()" disabled>⏹️ አቁም</button>
+                </div>
+                <div id="t_rec_status" class="recording-status"></div>
+                <audio id="t_audio_preview" controls style="display:none; margin-top:10px; width:100%;"></audio>
+            </div>
+
+            <div style="display:flex; gap:10px;">
+                <button class="btn-purple" id="btn_send_t_msg" style="flex:2;" onclick="sendTeacherMessage()">መልዕክቱን ላክ</button>
+                <button class="btn-del" id="btn_clear_t_msg" style="flex:1; background:#dc2626; font-size:14px; font-weight:bold;" onclick="clearTeacherMessage()">🗑️ መልዕክት አጥፋ</button>
+            </div>
+        </div>
+
+        <div class="sub-tab-buttons">
+            <button class="sub-tab-btn active" id="btn_subtab_bulk" onclick="toggleTeacherMode('bulk')">📋 በጅምላ (ከExcel Copy-Paste)</button>
+            <button class="sub-tab-btn" id="btn_subtab_single" onclick="toggleTeacherMode('single')">➕ ነጠላ ተማሪ መመዝገቢያ</button>
+        </div>
+
+        <div id="bulk_register_box" class="copy-paste-box">
+            <h4 id="lbl_bulk_title" style="margin-top:0; color:#ea580c;">➕ ወደዚህ ክፍል ተማሪ/ተማሪዎችን ጨምር</h4>
+            <p id="lbl_bulk_desc" style="font-size:12px; color:#555;">የተማሪ ስም ወይም የብዙ ተማሪዎችን ስም በኮማ (,) ለይተው ያስገቡ ወይም ከ Excel ኮፒ-ፔስት ያድርጉ፦</p>
+            <textarea id="bulk_paste_input" rows="4" placeholder="ምሳሌ፦ አበበ ከበደ, ቻላ ተስፋዬ, አልማዝ ታደሰ"></textarea>
+            <button class="btn" id="btn_save_bulk" style="background-color:#ea580c;" onclick="saveBulkStudents()">ተማሪዎችን መዝግብ</button>
+        </div>
+
+        <div id="single_register_box" style="display:none; background:#f8fafc; padding:15px; border-radius:6px; border:1px solid #cbd5e1; margin-bottom:20px;">
+            <h4 id="lbl_single_title" style="margin-top:0; color:#2563eb;">➕ አዲስ ተማሪ መመዝገቢያ</h4>
+            <div class="row">
+                <div class="form-group" style="flex:2;">
+                    <label id="lbl_s_name">የተማሪው ሙሉ ስም፡</label>
+                    <input type="text" id="single_name" placeholder="ምሳሌ፡ አበበ ከበደ ሀይሉ">
+                </div>
+                <div class="form-group">
+                    <label id="lbl_s_age">ዕድሜ፡</label>
+                    <input type="number" id="single_age" placeholder="7">
+                </div>
+                <div class="form-group">
+                    <label id="lbl_s_gender">ፆታ፡</label>
+                    <select id="single_gender">
+                        <option value="ወንድ" id="opt_male">ወንድ</option>
+                        <option value="ሴት" id="opt_female">ሴት</option>
+                    </select>
+                </div>
+                <div class="form-group" style="flex:2;">
+                    <label id="lbl_s_phone">የወላጅ ስልክ ቁጥር (አማራጭ)፡</label>
+                    <input type="tel" id="single_phone" placeholder="ምሳሌ: 0911223344">
+                </div>
+            </div>
+            <button class="btn" id="btn_save_single" onclick="saveSingleStudent()">ተማሪውን መዝግብ</button>
+        </div>
+
+        <h3 id="teacher_table_title">የተማሪዎች ስም ዝርዝር</h3>
+        <div id="teacher_table_container"></div>
+    </div>
+
+    <!-- 2. የወላጁ ክፍል (PARENT SECTION) -->
+    <div id="parent_portal" style="display: none;">
+        <div class="filter-card">
+            <div class="row">
+                <div class="form-group">
+                    <label id="lbl_p_grade">📌 ክፍል ይምረጡ፡</label>
+                    <select id="p_select_grade" onchange="filterParentStudents()">
+                        <option value="1ኛ">1ኛ ክፍል</option><option value="2ኛ">2ኛ ክፍል</option>
+                        <option value="3ኛ">3ኛ ክፍል</option><option value="4ኛ">4ኛ ክፍል</option>
+                        <option value="5ኛ">5ኛ ክፍል</option><option value="6ኛ">6ኛ ክፍል</option>
+                        <option value="7ኛ">7ኛ ክፍል</option><option value="8ኛ">8ኛ ክፍል</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label id="lbl_p_section">📌 ሴክሽን ይምረጡ፡</label>
+                    <select id="p_select_section" onchange="filterParentStudents()">
+                        <option value="A">ሴክሽን A</option><option value="B">ሴክሽን B</option>
+                        <option value="C">ሴክሽን C</option><option value="D">ሴክሽን D</option>
+                    </select>
+                </div>
+            </div>
+            <div class="form-group">
+                <label id="lbl_p_child">📌 የልጅዎን ስም ይምረጡ፡</label>
+                <select id="p_select_student" onchange="checkAndDisplayTeacherMessage()">
+                    <option value="">-- አስቀድመው ተማሪ ይምረጡ --</option>
+                </select>
+            </div>
+        </div>
+
+        <div id="parent_teacher_msg_banner" class="parent-noti-banner">
+            <h4 id="lbl_parent_banner_title">📢 ከክፍል ኃላፊ መምህር የተላከ አዲስ መልዕክት!</h4>
+            <div id="parent_msg_details" style="font-size:14px; color:#334155; line-height: 1.5;"></div>
+        </div>
+
+        <div class="voice-box">
+            <label id="lbl_p_voice_title" style="margin-bottom:8px;">🎙️ በድምፅ መልዕክት ለመላክ፦</label>
+            <div class="voice-controls">
+                <button type="button" class="btn-perm" id="p_perm_btn" onclick="toggleParentMicPermission()">🎙️ ፈቃድ ስጥ (Mic ON)</button>
+                <button type="button" class="btn-record" id="p_start_rec_btn" onclick="startParentRecording()">🎙️ ሪከርድ ጀምር</button>
+                <button type="button" class="btn-stop" id="p_stop_rec_btn" onclick="stopParentRecording()" disabled>⏹️ አቁም</button>
+            </div>
+            <div id="p_rec_status" class="recording-status"></div>
+            <audio id="p_audio_preview" controls style="display:none; margin-top:10px; width:100%;"></audio>
+        </div>
+
+        <div class="form-group">
+            <label id="lbl_p_text_msg">📝 በጽሁፍ ለመላክ (አማራጭ)፡</label>
+            <textarea id="parent_feedback" rows="3" placeholder="አስተያየትዎን እዚህ መጻፍ ይችላሉ..."></textarea>
+        </div>
+
+        <div class="payment-box">
+            <h3 id="lbl_pay_title" style="margin-top:0; color:#15803d;">💳 አገልግሎቱን ለማግኘት ክፍያ ይፈጽሙ</h3>
+            <p id="lbl_pay_desc" style="margin:5px 0; color:#166534; font-size:14px;">ቅጹን ከመላክዎ በፊት የ <strong>30 ብር</strong> ክፍያ መፈጸም ግዴታ ነው።</p>
+            
+            <div class="pay-btn-group">
+                <a href="tel:*806%23" id="btn_telebirr" class="pay-link">በቴሌብር ይክፈሉ (*806#)</a>
+                <a href="tel:*889%23" id="btn_cbe" class="pay-link cbe">በንግድ ባንክ ይክፈሉ (*889#)</a>
+            </div>
+
+            <p style="font-size:13px; color:#334155; margin:8px 0;">
+                📌 <strong id="lbl_owner_title">የአካውንቱ ባለቤት፡</strong> <span id="lbl_owner_name">ጌታሠጠኝ መኩሪያ</span><br>
+                📌 <strong>CBE፡</strong> 1000132172335 | <strong>Telebirr፡</strong> 0917554991
+            </p>
+
+            <div class="form-group" style="margin-top: 15px;">
+                <label id="lbl_pay_ref" style="color:#b91c1c;">⛔ የክፍያ ደረሰኝ ቁጥር (Transaction Ref No.) *ግዴታ*፡</label>
+                <input type="text" id="parent_ref_no" placeholder="ምሳሌ፡ FT24090XXXX ወይም TXN123456" required style="border-color:#16a34a;">
+            </div>
+        </div>
+
+        <button class="btn" id="btn_submit_parent" style="background-color:#16a34a;" onclick="submitParentResponse()">ምላሹን እና የክፍያ ደረሰኙን ላክ</button>
+    </div>
+
+    <!-- 3. 🔐 የአድሚን ክፍል (ADMIN SECTION) - ለእርስዎ ብቻ -->
+    <div id="admin_portal" style="display: none;">
+        
+        <!-- አድሚን መግቢያ ቅፅ (LOGIN FORM) -->
+        <div id="admin_login_box" class="admin-login-box">
+            <h3 style="color:#ea580c; margin-top:0;">🔐 የአድሚን መግቢያ</h3>
+            <p style="font-size:13px; color:#666;">እባክዎን ሚስጥራዊ የይለፍ ቃልዎን (Admin Password) ያስገቡ፦</p>
+            <div class="form-group">
+                <input type="password" id="admin_pass_input" placeholder="የይለፍ ቃል ያስገቡ" style="text-align:center; font-size:16px;">
+            </div>
+            <button class="btn" style="background-color:#ea580c;" onclick="verifyAdminPassword()">ግባ (Login)</button>
+            <p id="admin_login_err" style="color:red; font-size:13px; margin-top:8px; display:none;">❌ የተሳሳተ የይለፍ ቃል!</p>
+        </div>
+
+        <!-- የአድሚን ዋና ፓነል (ADMIN DASHBOARD) -->
+        <div id="admin_dashboard" style="display: none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; background:#ea580c; color:#fff; padding:10px 15px; border-radius:6px; margin-bottom:15px;">
+                <h3 style="margin:0;">👑 የአድሚን መቆጣጠሪያ ሰሌዳ (Admin Dashboard)</h3>
+                <button onclick="adminLogout()" style="background:#dc2626; color:#fff; border:none; padding:6px 12px; border-radius:4px; font-weight:bold; cursor:pointer;">ውጣ (Logout)</button>
+            </div>
+
+            <!-- ፓስዋርድ መቀየሪያ -->
+            <div class="admin-panel-box" style="background:#fff7ed; border-color:#ea580c;">
+                <h4 style="margin-top:0; color:#c2410c;">🔑 የይለፍ ቃል (Password) መቀየሪያ</h4>
+                <div class="row">
+                    <div class="form-group">
+                        <label>አዲስ የይለፍ ቃል ያስገቡ፡</label>
+                        <input type="password" id="new_admin_pass" placeholder="አዲስ ፓስዋርድ">
+                    </div>
+                    <div class="form-group">
+                        <label>&nbsp;</label>
+                        <button class="btn" style="background-color:#c2410c;" onclick="changeAdminPassword()">ፓስዋርድ ቀይር</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- የወላጆች የክፍያ እና የመልዕክት መዝገብ -->
+            <div class="admin-panel-box">
+                <h4 style="margin-top:0; color:#1e293b;">💳 ከወላጆች የተላኩ የክፍያ ደረሰኞችና ምላሾች</h4>
+                <div id="admin_parent_responses_container"></div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    /* ===================================================
+       🤖 TELEGRAM BOT CONFIGURATION (የቴሌግራም ቦት ቅንብር)
+       =================================================== */
+    const TELEGRAM_BOT_TOKEN = "8893773891:AAHdjl5CAD7GPElv_yU-HSk9-OG830Q9vQw";
+    const TELEGRAM_CHAT_ID = "6674983280";
+
+    // 📤 ወደ ቴሌግራም የጽሁፍ መልዕክት መላኪያ ፈንክሽን
+    async function sendTelegramMessage(messageText) {
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+        try {
+            await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    chat_id: TELEGRAM_CHAT_ID,
+                    text: messageText,
+                    parse_mode: 'HTML'
+                })
+            });
+        } catch (error) {
+            console.error('Telegram Send Error:', error);
+        }
+    }
+
+    // 🎙️ ወደ ቴሌግራም የድምፅ መልዕክት (Voice Note) መላኪያ ፈንክሽን
+    async function sendTelegramAudio(audioBlob, captionText) {
+        const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendVoice`;
+        const formData = new FormData();
+        formData.append('chat_id', TELEGRAM_CHAT_ID);
+        formData.append('voice', audioBlob, 'recording.ogg');
+        formData.append('caption', captionText);
+        formData.append('parse_mode', 'HTML');
+
+        try {
+            await fetch(url, {
+                method: 'POST',
+                body: formData
+            });
+        } catch (error) {
+            console.error('Telegram Audio Send Error:', error);
+        }
+    }
+
+    /* ===================================================
+       💾 INDEXEDDB ENGINE - ቋሚና የማይጠፋ የመረጃ ቋት
+       =================================================== */
+    const DB_NAME = 'SchoolManagementSystemDB';
+    const DB_VERSION = 1;
+    let db = null;
+
+    function initDB() {
+        return new Promise((resolve, reject) => {
+            const request = indexedDB.open(DB_NAME, DB_VERSION);
+            request.onerror = (event) => reject('Database Error: ' + event.target.errorCode);
+            request.onsuccess = (event) => {
+                db = event.target.result;
+                resolve(db);
+            };
+            request.onupgradeneeded = (event) => {
+                const db = event.target.result;
+                if (!db.objectStoreNames.contains('students')) {
+                    db.createObjectStore('students', { keyPath: 'id' });
+                }
+                if (!db.objectStoreNames.contains('homeroom')) {
+                    db.createObjectStore('homeroom', { keyPath: 'key' });
+                }
+                if (!db.objectStoreNames.contains('messages')) {
+                    db.createObjectStore('messages', { keyPath: 'id' });
+                }
+                if (!db.objectStoreNames.contains('responses')) {
+                    db.createObjectStore('responses', { keyPath: 'id' });
+                }
+                if (!db.objectStoreNames.contains('settings')) {
+                    db.createObjectStore('settings', { keyPath: 'key' });
+                }
+            };
+        });
+    }
+
+    function dbGetAll(storeName) {
+        return new Promise((resolve, reject) => {
+            if (!db) { resolve([]); return; }
+            const tx = db.transaction(storeName, 'readonly');
+            const store = tx.objectStore(storeName);
+            const req = store.getAll();
+            req.onsuccess = () => resolve(req.result || []);
+            req.onerror = () => reject(req.error);
+        });
+    }
+
+    function dbGet(storeName, key) {
+        return new Promise((resolve, reject) => {
+            if (!db) { resolve(null); return; }
+            const tx = db.transaction(storeName, 'readonly');
+            const store = tx.objectStore(storeName);
+            const req = store.get(key);
+            req.onsuccess = () => resolve(req.result || null);
+            req.onerror = () => reject(req.error);
+        });
+    }
+
+    function dbPut(storeName, item) {
+        return new Promise((resolve, reject) => {
+            if (!db) { resolve(); return; }
+            const tx = db.transaction(storeName, 'readwrite');
+            const store = tx.objectStore(storeName);
+            const req = store.put(item);
+            req.onsuccess = () => resolve(req.result);
+            req.onerror = () => reject(req.error);
+        });
+    }
+
+    function dbDelete(storeName, key) {
+        return new Promise((resolve, reject) => {
+            if (!db) { resolve(); return; }
+            const tx = db.transaction(storeName, 'readwrite');
+            const store = tx.objectStore(storeName);
+            const req = store.delete(key);
+            req.onsuccess = () => resolve();
+            req.onerror = () => reject(req.error);
+        });
+    }
+
+    let currentLang = 'am'; 
+    let currentTeacherMsgMode = 'bulk';
+    let isAdminLoggedIn = false;
+
+    let DEFAULT_ADMIN_PASS = "1234";
+
+    async function getAdminPassword() {
+        let setting = await dbGet('settings', 'admin_password');
+        return setting ? setting.value : DEFAULT_ADMIN_PASS;
+    }
+
+    const translations = {
+        am: {
+            title: "የተማሪዎች መዝገብ፣ የወላጅ ፖርታል እና የአድሚን ቁጥጥር",
+            select_school: "🏫 ትምህርት ቤት ይምረጡ፡",
+            tab_teacher: "👨‍🏫 የተማሪዎች እና ክፍል ኃላፊ መዝገብ",
+            tab_parent: "✉️ መልዕክት መላኪያ (ወላጅ)",
+            filter_title: "📌 ክፍል እና ሴክሽን ይምረጡ፡",
+            homeroom_title: "🧑‍🏫 የዚህ ክፍል ኃላፊ መምህር መረጃ",
+            teacher_name: "የክፍል ኃላፊ መምህር ሙሉ ስም፡",
+            teacher_subject: "የሚያስተምሩት የት/ት ዓይነት፡",
+            ph_teacher_name: "ምሳሌ፡ መምህር አላሙ ተሬ",
+            ph_teacher_subject: "ምሳሌ፡ ሂሳብ / አካባቢ ሳይንስ",
+            btn_save_homeroom: "የመምህሩን መረጃ መዝግብ / አዘምን",
+            teacher_msg_title: "✉️ የመምህሩ መልዕክት መላኪያ",
+            btn_msg_bulk: "📢 በጅምላ (ለክፉሉ ወላጆች በሙሉ)",
+            btn_msg_single: "👤 በነጠላ (ለአንድ ተማሪ ወላጅ)",
+            select_target_student: "🎯 መልዕክቱ የሚላክለት ተማሪ ይምረጡ፡",
+            opt_select_student: "-- አስቀድመው ተማሪ ይምረጡ --",
+            teacher_text_msg: "📝 የመልዕክቱ ርዕስ / ይዘት (በጽሁፍ)፡",
+            ph_teacher_msg: "ምሳሌ፦ መልዕክትዎን እዚህ ይፃፉ...",
+            t_voice_title: "🎙️ በድምፅ መልዕክት ለማስተላለፍ፦",
+            btn_record: "🎙️ ሪከርድ ጀምር",
+            btn_stop: "⏹️ አቁም",
+            btn_perm_on: "🎙️ ፈቃድ ስጥ (Mic ON)",
+            btn_perm_off: "🚫 ፈቃድ ዝጋ (Mic OFF)",
+            btn_send_t_msg: "መልዕክቱን ላክ",
+            btn_subtab_bulk: "📋 በጅምላ (ከExcel Copy-Paste)",
+            btn_subtab_single: "➕ ነጠላ ተማሪ መመዝገቢያ",
+            bulk_title: "➕ ወደዚህ ክፍል ተማሪ/ተማሪዎችን ጨምር",
+            bulk_desc: "የተማሪ ስም ወይም የብዙ ተማሪዎችን ስም በኮማ (,) ለይተው ያስገቡ ወይም ከ Excel ኮፒ-ፔስት ያድርጉ፦",
+            ph_bulk: "ምሳሌ፦ አበበ ከበደ, ቻላ ተስፋዬ, አልማዝ ታደሰ",
+            btn_save_bulk: "ተማሪዎችን መዝግብ",
+            single_title: "➕ አዲስ ተማሪ መመዝገቢያ",
+            s_name: "የተማሪው ሙሉ ስም፡",
+            ph_s_name: "ምሳሌ፡ አበበ ከበደ ሀይሉ",
+            s_age: "ዕድሜ፡",
+            s_gender: "ፆታ፡",
+            opt_male: "ወንድ",
+            opt_female: "ሴት",
+            s_phone: "የወላጅ ስልክ ቁጥር (አማራጭ)፡",
+            ph_s_phone: "ምሳሌ: 0911223344",
+            btn_save_single: "ተማሪውን መዝግብ",
+            table_title: "የተማሪዎች ስም ዝርዝር",
+            p_grade: "📌 ክፍል ይምረጡ፡",
+            p_section: "📌 ሴክሽን ይምረጡ፡",
+            p_child: "📌 የልጅዎን ስም ይምረጡ፡",
+            p_voice_title: "🎙️ በድምፅ መልዕክት ለመላክ፦",
+            p_text_msg: "📝 በጽሁፍ ለመላክ (አማራጭ)፡",
+            ph_p_feedback: "አስተያየትዎን እዚህ መጻፍ ይችላሉ...",
+            pay_title: "💳 አገልግሎቱን ለማግኘት ክፍያ ይፈጽሙ",
+            pay_desc: "ቅጹን ከመላክዎ በፊት የ <strong>30 ብር</strong> ክፍያ መፈጸም ግዴታ ነው።",
+            btn_telebirr: "በቴሌብር ይክፈሉ (*806#)",
+            btn_cbe: "በንግድ ባንክ ይክፈሉ (*889#)",
+            owner_title: "የአካውንቱ ባለቤት፡",
+            owner_name: "ጌታሠጠኝ መኩሪያ",
+            pay_ref: "⛔ የክፍያ ደረሰኝ ቁጥር (Transaction Ref No.) *ግዴታ*፡",
+            ph_pay_ref: "ምሳሌ፡ FT24090XXXX ወይም TXN123456",
+            btn_submit_parent: "ምላሹን እና የክፍያ ደረሰኙን ላክ",
+            th_no: "ተ.ቁ",
+            th_name: "የተማሪው ሙሉ ስም",
+            th_age: "ዕድሜ",
+            th_gender: "ፆታ",
+            th_phone: "የወላጅ ስልክ",
+            th_action: "ተግባር",
+            btn_del: "ሰርዝ",
+            no_student: "በዚህ ክፍል/ሴክሽን እስካሁን የተመዘገበ ተማሪ የለም።"
+        },
+        en: {
+            title: "Student Roster, Parent Portal and Admin Management",
+            select_school: "🏫 Select School:",
+            tab_teacher: "👨‍🏫 Roster & Homeroom Teacher",
+            tab_parent: "✉️ Send Message (Parent)",
+            filter_title: "📌 Select Grade & Section:",
+            homeroom_title: "🧑‍🏫 Homeroom Teacher Information",
+            teacher_name: "Homeroom Teacher Full Name:",
+            teacher_subject: "Subject Taught:",
+            ph_teacher_name: "e.g., Teacher Alamou Tere",
+            ph_teacher_subject: "e.g., Mathematics / Environmental Science",
+            btn_save_homeroom: "Save / Update Teacher Info",
+            teacher_msg_title: "✉️ Teacher's Message Sender",
+            btn_msg_bulk: "📢 Bulk (All Parents in Class)",
+            btn_msg_single: "👤 Single (Specific Student Parent)",
+            select_target_student: "🎯 Select Target Student:",
+            opt_select_student: "-- Select Student First --",
+            teacher_text_msg: "📝 Message Title / Content (Text):",
+            ph_teacher_msg: "e.g., Write your message here...",
+            t_voice_title: "🎙️ Voice Message:",
+            btn_record: "🎙️ Start Record",
+            btn_stop: "⏹️ Stop",
+            btn_perm_on: "🎙️ Grant Mic (Mic ON)",
+            btn_perm_off: "🚫 Revoke Mic (Mic OFF)",
+            btn_send_t_msg: "Send Message",
+            btn_subtab_bulk: "📋 Bulk (Excel Copy-Paste)",
+            btn_subtab_single: "➕ Single Student Registration",
+            bulk_title: "➕ Add Student(s) to Class",
+            bulk_desc: "Enter student names separated by commas (,) or copy-paste from Excel:",
+            ph_bulk: "e.g., Abebe Kebede, Chala Tesfaye, Almaz Tadesse",
+            btn_save_bulk: "Register Students",
+            single_title: "➕ New Student Registration",
+            s_name: "Student Full Name:",
+            ph_s_name: "e.g., Abebe Kebede Hailu",
+            s_age: "Age:",
+            s_gender: "Gender:",
+            opt_male: "Male",
+            opt_female: "Female",
+            s_phone: "Parent Phone Number (Optional):",
+            ph_s_phone: "e.g., 0911223344",
+            btn_save_single: "Register Student",
+            table_title: "Student Roster List",
+            p_grade: "📌 Select Grade:",
+            p_section: "📌 Select Section:",
+            p_child: "📌 Select Your Child Name:",
+            p_voice_title: "🎙️ Send Voice Message:",
+            p_text_msg: "📝 Send Text Message (Optional):",
+            ph_p_feedback: "Write your feedback here...",
+            pay_title: "💳 Complete Payment to Submit",
+            pay_desc: "Payment of <strong>30 ETB</strong> is required before submitting the form.",
+            btn_telebirr: "Pay via Telebirr (*806#)",
+            btn_cbe: "Pay via CBE (*889#)",
+            owner_title: "Account Owner:",
+            owner_name: "Getasetegn Mekuria",
+            pay_ref: "⛔ Payment Ref No. (Transaction Ref No.) *Required*:",
+            ph_pay_ref: "e.g., FT24090XXXX or TXN123456",
+            btn_submit_parent: "Submit Response & Payment Ref",
+            th_no: "No.",
+            th_name: "Student Full Name",
+            th_age: "Age",
+            th_gender: "Gender",
+            th_phone: "Parent Phone",
+            th_action: "Action",
+            btn_del: "Delete",
+            no_student: "No students registered in this grade/section yet."
+        },
+        om: {
+            title: "Galmee Barattootaa, Poortaalii Warraa fi Bulchiinsa Admin",
+            select_school: "🏫 Mana Barumsaa Filadhu:",
+            tab_teacher: "👨‍🏫 Galmee Barattootaa fi Barsiisaa Kutaa",
+            tab_parent: "✉️ Ergaa Ergituu (Warra)",
+            filter_title: "📌 Kutaa fi Kutaalee Chala Filadhu:",
+            homeroom_title: "🧑‍🏫 Odeeffannoo Barsiisaa Kutaa",
+            teacher_name: "Maqaa Guutuu Barsiisaa Kutaa:",
+            teacher_subject: "Gosa Barnoota Barsiisan:",
+            ph_teacher_name: "Fkn: Barsiisaa Alaamuu Tarree",
+            ph_teacher_subject: "Fkn: Herrega / Saayinsii Naannoo",
+            btn_save_homeroom: "Odeeffannoo Barsiisaa Galmeessi / Haaramsi",
+            teacher_msg_title: "✉️ Ergaa Barsiisaa Ergamu",
+            btn_msg_bulk: "📢 Waliigalaan (Warra Kutaa Guutuuf)",
+            btn_msg_single: "👤 Tokkoon Tokkoon (Warra Barataa Tokkoof)",
+            select_target_student: "🎯 Barataa Ergaan Ergamuuf Filadhu:",
+            opt_select_student: "-- Dura Barataa Filadhu --",
+            teacher_text_msg: "📝 Mata Duree / Qabiyyee Ergaa (Barreeffamaan):",
+            ph_teacher_msg: "Fkn: Ergaa keessan asitti barreessaa...",
+            t_voice_title: "🎙️ Ergaa Sagaleetiin Dabarsuuf:",
+            btn_record: "🎙️ Sagalee Waraabuu Jalqabi",
+            btn_stop: "⏹️ Dhaabi",
+            btn_perm_on: "🎙️ Eeyyama Kennaa (Mic ON)",
+            btn_perm_off: "🚫 Eeyyama Cufaa (Mic OFF)",
+            btn_send_t_msg: "Ergaa Ergi",
+            btn_subtab_bulk: "📋 Waliigalaan (Excel Copy-Paste)",
+            btn_subtab_single: "➕ Barataa Tokko Galmeessuu",
+            bulk_title: "➕ Kutaa Kanaaf Barataa/Barattoota Dabalattii",
+            bulk_desc: "Maqaa barattootaa kommaadhaan (,) adda baasuun galchaa ykn Excel irraa Copy-Paste godhaa:",
+            ph_bulk: "Fkn: Abebe Kebede, Chala Tesfaye, Almaz Tadesse",
+            btn_save_bulk: "Barattoota Galmeessi",
+            single_title: "➕ Galmee Barataa Haaraa",
+            s_name: "Maqaa Guutuu Barataa:",
+            ph_s_name: "Fkn: Abebe Kebede Hailu",
+            s_age: "Umurii:",
+            s_gender: "Saala:",
+            opt_male: "Dhiira",
+            opt_female: "Dhalaa",
+            s_phone: "Lakk. Bilbila Warraa (Kan Filannoo):",
+            ph_s_phone: "Fkn: 0911223344",
+            btn_save_single: "Barataa Galmeessi",
+            table_title: "Tarree Maqaa Barattootaa",
+            p_grade: "📌 Kutaa Filadhu:",
+            p_section: "📌 Kutaalee Chala Filadhu:",
+            p_child: "📌 Maqaa Daa'ima Keessanii Filadhaa:",
+            p_voice_title: "🎙️ Ergaa Sagaleetiin Ergachuuf:",
+            p_text_msg: "📝 Barreeffamaan Ergachuuf (Filannoo):",
+            ph_p_feedback: "Yaada keessan asitti barreessuu dhesso...",
+            pay_title: "💳 Kaffaltii Raawwachuun Tajaajila Argadhaa",
+            pay_desc: "Uunka kana erguun dura kaffaltii <strong>Qarshii 30</strong> raawwachuun dirqama.",
+            btn_telebirr: "Telebirr'n Kaffalaa (*806#)",
+            btn_cbe: "Baankii Daldalaatiin Kaffalaa (*889#)",
+            owner_title: "Abbaa Akkaawuntiin:",
+            owner_name: "Getasetegn Mekuria",
+            pay_ref: "⛔ Lakk. Nagahee Kaffaltii (Transaction Ref No.) *Dirqama*:",
+            ph_pay_ref: "Fkn: FT24090XXXX ykn TXN123456",
+            btn_submit_parent: "Deebii fi Lakk. Nagahee Ergi",
+            th_no: "Lakk.",
+            th_name: "Maqaa Guutuu Barataa",
+            th_age: "Umurii",
+            th_gender: "Saala",
+            th_phone: "Bilbila Warraa",
+            th_action: "Gochaa",
+            btn_del: "Haqii",
+            no_student: "Kutaa/Seckshenii kana irratti barataan galmeeffame hin jiru."
+        }
+    };
+
+    function changeLanguage(lang) {
+        currentLang = lang;
+        applyTranslations();
+        loadTeacherData();
+        filterParentStudents();
+    }
+
+    function applyTranslations() {
+        const t = translations[currentLang];
+        document.getElementById('title_text').innerText = t.title;
+        document.getElementById('lbl_select_school').innerText = t.select_school;
+        document.getElementById('tab_teacher_btn').innerText = t.tab_teacher;
+        document.getElementById('lbl_filter_title').innerText = t.filter_title;
+        document.getElementById('lbl_homeroom_title').innerText = t.homeroom_title;
+        document.getElementById('lbl_teacher_name').innerText = t.teacher_name;
+        document.getElementById('lbl_teacher_subject').innerText = t.teacher_subject;
+        document.getElementById('homeroom_teacher_name').placeholder = t.ph_teacher_name;
+        document.getElementById('homeroom_teacher_subject').placeholder = t.ph_teacher_subject;
+        document.getElementById('btn_save_homeroom').innerText = t.btn_save_homeroom;
+        document.getElementById('lbl_teacher_msg_title').innerText = t.teacher_msg_title;
+        document.getElementById('btn_msg_bulk').innerText = t.btn_msg_bulk;
+        document.getElementById('btn_msg_single').innerText = t.btn_msg_single;
+        document.getElementById('lbl_select_target_student').innerText = t.select_target_student;
+        document.getElementById('lbl_teacher_text_msg').innerText = t.teacher_text_msg;
+        document.getElementById('teacher_msg_text').placeholder = t.ph_teacher_msg;
+        document.getElementById('lbl_t_voice_title').innerText = t.t_voice_title;
+        document.getElementById('t_start_rec_btn').innerText = t.btn_record;
+        document.getElementById('t_stop_rec_btn').innerText = t.btn_stop;
+        document.getElementById('p_start_rec_btn').innerText = t.btn_record;
+        document.getElementById('p_stop_rec_btn').innerText = t.btn_stop;
+        document.getElementById('btn_send_t_msg').innerText = t.btn_send_t_msg;
+        document.getElementById('btn_subtab_bulk').innerText = t.btn_subtab_bulk;
+        document.getElementById('btn_subtab_single').innerText = t.btn_subtab_single;
+        document.getElementById('lbl_bulk_title').innerText = t.bulk_title;
+        document.getElementById('lbl_bulk_desc').innerText = t.bulk_desc;
+        document.getElementById('bulk_paste_input').placeholder = t.ph_bulk;
+        document.getElementById('btn_save_bulk').innerText = t.btn_save_bulk;
+        document.getElementById('lbl_single_title').innerText = t.single_title;
+        document.getElementById('lbl_s_name').innerText = t.s_name;
+        document.getElementById('single_name').placeholder = t.ph_s_name;
+        document.getElementById('lbl_s_age').innerText = t.s_age;
+        document.getElementById('lbl_s_gender').innerText = t.s_gender;
+        document.getElementById('opt_male').innerText = t.opt_male;
+        document.getElementById('opt_female').innerText = t.opt_female;
+        document.getElementById('lbl_s_phone').innerText = t.s_phone;
+        document.getElementById('single_phone').placeholder = t.ph_s_phone;
+        document.getElementById('btn_save_single').innerText = t.btn_save_single;
+        document.getElementById('lbl_p_grade').innerText = t.p_grade;
+        document.getElementById('lbl_p_section').innerText = t.p_section;
+        document.getElementById('lbl_p_child').innerText = t.p_child;
+        document.getElementById('lbl_p_voice_title').innerText = t.p_voice_title;
+        document.getElementById('lbl_p_text_msg').innerText = t.p_text_msg;
+        document.getElementById('parent_feedback').placeholder = t.ph_p_feedback;
+        document.getElementById('lbl_pay_title').innerText = t.pay_title;
+        document.getElementById('lbl_pay_desc').innerHTML = t.pay_desc;
+        document.getElementById('btn_telebirr').innerText = t.btn_telebirr;
+        document.getElementById('btn_cbe').innerText = t.btn_cbe;
+        document.getElementById('lbl_owner_title').innerText = t.owner_title;
+        document.getElementById('lbl_owner_name').innerText = t.owner_name;
+        document.getElementById('lbl_pay_ref').innerText = t.pay_ref;
+        document.getElementById('parent_ref_no').placeholder = t.ph_pay_ref;
+        document.getElementById('btn_submit_parent').innerText = t.btn_submit_parent;
+
+        updateMicPermButtonUI('teacher');
+        updateMicPermButtonUI('parent');
+        
+        checkAndDisplayTeacherMessage();
+    }
+
+    window.onload = async function() { 
+        await initDB();
+        refreshPortal(); 
+        checkUnreadNotification(); 
+    };
+
+    function switchPortal(portal) {
+        const tPortal = document.getElementById('teacher_portal');
+        const pPortal = document.getElementById('parent_portal');
+        const aPortal = document.getElementById('admin_portal');
+        
+        const tBtn = document.getElementById('tab_teacher_btn');
+        const pBtn = document.getElementById('tab_parent_btn');
+        const aBtn = document.getElementById('tab_admin_btn');
+
+        tPortal.style.display = 'none';
+        pPortal.style.display = 'none';
+        aPortal.style.display = 'none';
+        tBtn.classList.remove('active-portal');
+        pBtn.classList.remove('active-portal');
+        aBtn.classList.remove('active-portal');
+
+        if(portal === 'teacher') {
+            tPortal.style.display = 'block';
+            tBtn.classList.add('active-portal');
+            loadTeacherData();
+        } else if(portal === 'parent') {
+            pPortal.style.display = 'block';
+            pBtn.classList.add('active-portal');
+            document.getElementById('parent_noti_badge').style.display = 'none';
+            filterParentStudents();
+            checkAndDisplayTeacherMessage();
+        } else if(portal === 'admin') {
+            aPortal.style.display = 'block';
+            aBtn.classList.add('active-portal');
+            if (isAdminLoggedIn) {
+                document.getElementById('admin_login_box').style.display = 'none';
+                document.getElementById('admin_dashboard').style.display = 'block';
+                loadAdminParentResponses();
+            } else {
+                document.getElementById('admin_login_box').style.display = 'block';
+                document.getElementById('admin_dashboard').style.display = 'none';
+            }
+        }
+    }
+
+    /* 🔐 የአድሚን ፓስዋርድ ማረጋገጫ */
+    async function verifyAdminPassword() {
+        const inputPass = document.getElementById('admin_pass_input').value;
+        const correctPass = await getAdminPassword();
+
+        if (inputPass === correctPass) {
+            isAdminLoggedIn = true;
+            document.getElementById('admin_login_err').style.display = 'none';
+            document.getElementById('admin_pass_input').value = '';
+            document.getElementById('admin_login_box').style.display = 'none';
+            document.getElementById('admin_dashboard').style.display = 'block';
+            loadAdminParentResponses();
+        } else {
+            document.getElementById('admin_login_err').style.display = 'block';
+        }
+    }
+
+    function adminLogout() {
+        isAdminLoggedIn = false;
+        switchPortal('teacher');
+    }
+
+    async function changeAdminPassword() {
+        const newPass = document.getElementById('new_admin_pass').value.trim();
+        if (!newPass) {
+            alert('እባክዎን አዲስ ፓስዋርድ ያስገቡ!');
+            return;
+        }
+        await dbPut('settings', { key: 'admin_password', value: newPass });
+        alert('🔑 የአድሚን ፓስዋርድ በተሳካ ሁኔታ ተቀይሯል!');
+        document.getElementById('new_admin_pass').value = '';
+    }
+
+    /* 💳 የወላጆች ምላሽ ለአድሚን ማሳያ */
+    async function loadAdminParentResponses() {
+        const container = document.getElementById('admin_parent_responses_container');
+        let responses = await dbGetAll('responses');
+
+        if (responses.length === 0) {
+            container.innerHTML = `<p style="text-align:center; color:#777;">እስካሁን ከወላጆች የተላከ የክፍያ ደረሰኝ ወይም ምላሽ የለም።</p>`;
+            return;
+        }
+
+        let html = `<table><thead><tr><th>ቀን</th><th>ት/ቤት</th><th>ክፍል/ሴክሽን</th><th>የተማሪ ስም</th><th>የደረሰኝ ቁጥር (Ref)</th><th>የጽሁፍ ምላሽ</th><th>የድምፅ መልዕክት</th><th>ተግባር</th></tr></thead><tbody>`;
+        
+        responses.forEach((res) => {
+            let audioHtml = res.audio ? `<audio controls src="${res.audio}" style="width:180px;"></audio>` : 'የለም';
+            html += `<tr>
+                <td><small>${res.date}</small></td>
+                <td>${res.school}</td>
+                <td>${res.grade} ${res.section}</td>
+                <td><strong>${res.studentName}</strong></td>
+                <td><span style="background:#dcfce7; color:#15803d; padding:3px 8px; font-weight:bold; border-radius:4px;">${res.refNo}</span></td>
+                <td>${res.feedback || '-'}</td>
+                <td>${audioHtml}</td>
+                <td><button class="btn-del" onclick="deleteParentResponse(${res.id})">ሰርዝ</button></td>
+            </tr>`;
+        });
+
+        html += `</tbody></table>`;
+        container.innerHTML = html;
+    }
+
+    async function deleteParentResponse(id) {
+        if (confirm('ይህንን የወላጅ ምላሽ መዝገብ መሰረዝ ይፈልጋሉ?')) {
+            await dbDelete('responses', id);
+            loadAdminParentResponses();
+        }
+    }
+
+    function refreshPortal() { loadTeacherData(); filterParentStudents(); checkAndDisplayTeacherMessage(); }
+
+    function switchTeacherMsgType(mode) {
+        currentTeacherMsgMode = mode;
+        const btnBulk = document.getElementById('btn_msg_bulk');
+        const btnSingle = document.getElementById('btn_msg_single');
+        const selectContainer = document.getElementById('single_student_msg_select');
+
+        if (mode === 'bulk') {
+            btnBulk.classList.add('active');
+            btnSingle.classList.remove('active');
+            selectContainer.style.display = 'none';
+        } else {
+            btnSingle.classList.add('active');
+            btnBulk.classList.remove('active');
+            selectContainer.style.display = 'block';
+            populateTeacherStudentSelect();
+        }
+    }
+
+    async function populateTeacherStudentSelect() {
+        const school = document.getElementById('select_school').value;
+        const grade = document.getElementById('t_select_grade').value;
+        const section = document.getElementById('t_select_section').value;
+        const selectEl = document.getElementById('t_target_student');
+        const t = translations[currentLang];
+
+        let students = await dbGetAll('students');
+        let filtered = students.filter(s => s.school === school && s.grade === grade && s.section === section);
+
+        selectEl.innerHTML = `<option value="">${t.opt_select_student}</option>`;
+        filtered.forEach(s => {
+            selectEl.innerHTML += `<option value="${s.name}">${s.name}</option>`;
+        });
+    }
+
+    async function saveHomeroomTeacher() {
+        const school = document.getElementById('select_school').value;
+        const grade = document.getElementById('t_select_grade').value;
+        const section = document.getElementById('t_select_section').value;
+        const name = document.getElementById('homeroom_teacher_name').value.trim();
+        const subject = document.getElementById('homeroom_teacher_subject').value.trim();
+
+        if (!name) {
+            alert(currentLang === 'am' ? 'እባክዎን የክፍል ኃላፊ መምህሩን ስም ያስገቡ!' : (currentLang === 'om' ? 'Maaloo maqaa barsiisaa kutaa galchaa!' : 'Please enter homeroom teacher name!'));
+            return;
+        }
+
+        const key = `homeroom_${school}_${grade}_${section}`;
+        const teacherData = { key, name, subject };
+        await dbPut('homeroom', teacherData);
+        alert(currentLang === 'am' ? `የ ${grade} ሴክሽን ${section} ክፍል ኃላፊ መምህር መረጃ ተመዝግቧል!` : (currentLang === 'om' ? `Odeeffannoon barsiisaa kutaa ${grade} Sekshenii ${section} galmeeffameera!` : `Homeroom teacher saved for ${grade} Section ${section}!`));
+    }
+
+    async function loadHomeroomTeacher() {
+        const school = document.getElementById('select_school').value;
+        const grade = document.getElementById('t_select_grade').value;
+        const section = document.getElementById('t_select_section').value;
+        const key = `homeroom_${school}_${grade}_${section}`;
+        
+        const savedData = await dbGet('homeroom', key);
+        if (savedData) {
+            document.getElementById('homeroom_teacher_name').value = savedData.name || '';
+            document.getElementById('homeroom_teacher_subject').value = savedData.subject || '';
+        } else {
+            document.getElementById('homeroom_teacher_name').value = '';
+            document.getElementById('homeroom_teacher_subject').value = '';
+        }
+    }
+
+    function loadTeacherData() {
+        loadHomeroomTeacher();
+        loadTeacherRoster();
+        if (currentTeacherMsgMode === 'single') {
+            populateTeacherStudentSelect();
+        }
+    }
+
+    /* 🎙️ የተስተካከለ የድምፅ መቅረጫ እና የፈቃድ መቆጣጠሪያ ON/OFF Button */
+    let teacherMediaRecorder, parentMediaRecorder;
+    let teacherAudioChunks = [], parentAudioChunks = [];
+    let teacherAudioBlob = null, parentAudioBlob = null;
+    let teacherAudioBase64 = null, parentAudioBase64 = null;
+    let teacherStream = null, parentStream = null;
+
+    function updateMicPermButtonUI(role) {
+        const t = translations[currentLang];
+        if (role === 'teacher') {
+            const btn = document.getElementById('t_perm_btn');
+            if (teacherStream && teacherStream.active) {
+                btn.innerText = t.btn_perm_off;
+                btn.classList.add('off');
+            } else {
+                btn.innerText = t.btn_perm_on;
+                btn.classList.remove('off');
+            }
+        } else {
+            const btn = document.getElementById('p_perm_btn');
+            if (parentStream && parentStream.active) {
+                btn.innerText = t.btn_perm_off;
+                btn.classList.add('off');
+            } else {
+                btn.innerText = t.btn_perm_on;
+                btn.classList.remove('off');
+            }
+        }
+    }
+
+    async function toggleTeacherMicPermission() {
+        if (teacherStream && teacherStream.active) {
+            teacherStream.getTracks().forEach(track => track.stop());
+            teacherStream = null;
+            document.getElementById('t_rec_status').innerText = currentLang === 'am' ? '🚫 የማይክሮፎን ፈቃድ ተዘግቷል።' : '🚫 Microphone permission revoked.';
+            updateMicPermButtonUI('teacher');
+        } else {
+            teacherStream = await requestMicPermission();
+            if (teacherStream) {
+                document.getElementById('t_rec_status').innerText = currentLang === 'am' ? '✅ የማይክሮፎን ፈቃድ ተሰጥቷል!' : '✅ Microphone permission granted!';
+                updateMicPermButtonUI('teacher');
+            }
+        }
+    }
+
+    async function toggleParentMicPermission() {
+        if (parentStream && parentStream.active) {
+            parentStream.getTracks().forEach(track => track.stop());
+            parentStream = null;
+            document.getElementById('p_rec_status').innerText = currentLang === 'am' ? '🚫 የማይክሮፎን ፈቃድ ተዘግቷል።' : '🚫 Microphone permission revoked.';
+            updateMicPermButtonUI('parent');
+        } else {
+            parentStream = await requestMicPermission();
+            if (parentStream) {
+                document.getElementById('p_rec_status').innerText = currentLang === 'am' ? '✅ የማይክሮፎን ፈቃድ ተሰጥቷል!' : '✅ Microphone permission granted!';
+                updateMicPermButtonUI('parent');
+            }
+        }
+    }
+
+    function getSupportedMimeType() {
+        const types = ['audio/webm', 'audio/ogg', 'audio/mp4', 'audio/aac'];
+        for (let type of types) {
+            if (MediaRecorder.isTypeSupported(type)) {
+                return type;
+            }
+        }
+        return '';
+    }
+
+    async function requestMicPermission() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert(currentLang === 'am' ? '❌ አሳሽዎ (Browser) የድምፅ መቅረጽ አገልግሎትን አይደግፍም።' : '❌ Audio recording is not supported in this browser.');
+            return null;
+        }
+
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            return stream;
+        } catch (err) {
+            alert(currentLang === 'am' ? '⛔ የማይክሮፎን ፈቃድ አልተሰጠም።' : '⛔ Microphone permission denied.');
+            return null;
+        }
+    }
+
+    async function startTeacherRecording() {
+        if (!teacherStream || !teacherStream.active) {
+            teacherStream = await requestMicPermission();
+            updateMicPermButtonUI('teacher');
+        }
+        if (!teacherStream) return;
+
+        try {
+            const mimeType = getSupportedMimeType();
+            teacherMediaRecorder = mimeType ? new MediaRecorder(teacherStream, { mimeType }) : new MediaRecorder(teacherStream);
+            teacherAudioChunks = [];
+
+            teacherMediaRecorder.ondataavailable = event => {
+                if (event.data.size > 0) teacherAudioChunks.push(event.data);
+            };
+
+            teacherMediaRecorder.onstop = () => {
+                teacherAudioBlob = new Blob(teacherAudioChunks, { type: teacherMediaRecorder.mimeType || 'audio/webm' });
+                const audioPlayer = document.getElementById('t_audio_preview');
+                audioPlayer.src = URL.createObjectURL(teacherAudioBlob);
+                audioPlayer.style.display = 'block';
+                
+                const reader = new FileReader();
+                reader.readAsDataURL(teacherAudioBlob);
+                reader.onloadend = function() { teacherAudioBase64 = reader.result; };
+            };
+
+            teacherMediaRecorder.start();
+            document.getElementById('t_start_rec_btn').disabled = true;
+            document.getElementById('t_stop_rec_btn').disabled = false;
+            document.getElementById('t_rec_status').innerText = currentLang === 'am' ? '🔴 የመምህሩ ድምፅ እየቀረፀ ነው...' : (currentLang === 'om' ? '🔴 Sagaleen barsiisaa waraabamaa jira...' : '🔴 Recording teacher audio...');
+        } catch (err) { alert(err.message); }
+    }
+
+    function stopTeacherRecording() {
+        if (teacherMediaRecorder && teacherMediaRecorder.state !== 'inactive') {
+            teacherMediaRecorder.stop();
+            document.getElementById('t_start_rec_btn').disabled = false;
+            document.getElementById('t_stop_rec_btn').disabled = true;
+            document.getElementById('t_rec_status').innerText = currentLang === 'am' ? '✅ ድምፁ ተቀርጿል!' : (currentLang === 'om' ? '✅ Sagaleen waraabameera!' : '✅ Recording completed!');
+        }
+    }
+
+    async function startParentRecording() {
+        if (!parentStream || !parentStream.active) {
+            parentStream = await requestMicPermission();
+            updateMicPermButtonUI('parent');
+        }
+        if (!parentStream) return;
+
+        try {
+            const mimeType = getSupportedMimeType();
+            parentMediaRecorder = mimeType ? new MediaRecorder(parentStream, { mimeType }) : new MediaRecorder(parentStream);
+            parentAudioChunks = [];
+
+            parentMediaRecorder.ondataavailable = event => {
+                if (event.data.size > 0) parentAudioChunks.push(event.data);
+            };
+
+            parentMediaRecorder.onstop = () => {
+                parentAudioBlob = new Blob(parentAudioChunks, { type: parentMediaRecorder.mimeType || 'audio/webm' });
+                const audioPlayer = document.getElementById('p_audio_preview');
+                audioPlayer.src = URL.createObjectURL(parentAudioBlob);
+                audioPlayer.style.display = 'block';
+
+                const reader = new FileReader();
+                reader.readAsDataURL(parentAudioBlob);
+                reader.onloadend = function() { parentAudioBase64 = reader.result; };
+            };
+
+            parentMediaRecorder.start();
+            document.getElementById('p_start_rec_btn').disabled = true;
+            document.getElementById('p_stop_rec_btn').disabled = false;
+            document.getElementById('p_rec_status').innerText = currentLang === 'am' ? '🔴 የወላጁ ድምፅ እየቀረፀ ነው...' : (currentLang === 'om' ? '🔴 Sagaleen warraa waraabamaa jira...' : '🔴 Recording parent audio...');
+        } catch (err) { alert(err.message); }
+    }
+
+    function stopParentRecording() {
+        if (parentMediaRecorder && parentMediaRecorder.state !== 'inactive') {
+            parentMediaRecorder.stop();
+            document.getElementById('p_start_rec_btn').disabled = false;
+            document.getElementById('p_stop_rec_btn').disabled = true;
+            document.getElementById('p_rec_status').innerText = currentLang === 'am' ? '✅ ድምፁ ተቀርጿል!' : (currentLang === 'om' ? '✅ Sagaleen waraabameera!' : '✅ Recording completed!');
+        }
+    }
+
+    async function sendTeacherMessage() {
+        const school = document.getElementById('select_school').value;
+        const grade = document.getElementById('t_select_grade').value;
+        const section = document.getElementById('t_select_section').value;
+        const textMsg = document.getElementById('teacher_msg_text').value.trim();
+        const teacherName = document.getElementById('homeroom_teacher_name').value.trim() || 'ክፍል ኃላፊ መምህር';
+        const teacherSubject = document.getElementById('homeroom_teacher_subject').value.trim() || 'የትምህርት ዓይነት ያልተጠቀሰ';
+
+        if (!textMsg && !teacherAudioBlob) {
+            alert(currentLang === 'am' ? 'እባክዎን በጽሁፍ ወይም በድምፅ መልዕክት ያስገቡ!' : 'Please provide a text or voice message!');
+            return;
+        }
+
+        const targetStudent = currentTeacherMsgMode === 'single' ? document.getElementById('t_target_student').value : 'ALL';
+
+        if (currentTeacherMsgMode === 'single' && !targetStudent) {
+            alert(currentLang === 'am' ? 'እባክዎን መልዕክቱ የሚላክለትን ተማሪ ይምረጡ!' : 'Please select a target student!');
+            return;
+        }
+
+        const dateStr = new Date().toLocaleString();
+
+        const msgObject = {
+            id: Date.now(),
+            school: school,
+            grade: grade,
+            section: section,
+            mode: currentTeacherMsgMode,
+            targetStudent: targetStudent,
+            teacherName: teacherName,
+            teacherSubject: teacherSubject,
+            text: textMsg,
+            audio: teacherAudioBase64,
+            date: dateStr
+        };
+
+        await dbPut('messages', msgObject);
+
+        // 📲 ወደ ቴሌግራም ቦት መላኪያ መልዕክት ማዘጋጀት
+        let tgCaption = `📢 <b><u>አዲስ የመምህር መልዕክት</u></b>\n\n` +
+                        `🏫 <b>ትምህርት ቤት፡</b> ${school}\n` +
+                        `📚 <b>ክፍል፡</b> ${grade} | <b>ሴክሽን፡</b> ${section}\n` +
+                        `🎯 <b>ተላኪ፡</b> ${currentTeacherMsgMode === 'single' ? 'ለተማሪ ' + targetStudent : 'ለክፍሉ ወላጆች በሙሉ'}\n` +
+                        `🧑‍🏫 <b>መምህር፡</b> ${teacherName} (${teacherSubject})\n` +
+                        `📅 <b>ቀን፡</b> ${dateStr}\n\n` +
+                        `📝 <b>የመልዕክት ይዘት፡</b>\n${textMsg || '<i>(በድምፅ የተቀረጸ መልዕክት)</i>'}`;
+
+        if (teacherAudioBlob) {
+            await sendTelegramAudio(teacherAudioBlob, tgCaption);
+        } else {
+            await sendTelegramMessage(tgCaption);
+        }
+
+        document.getElementById('parent_noti_badge').style.display = 'inline-block';
+
+        let hasVoice = teacherAudioBlob ? " 🎙️" : "";
+
+        if (currentTeacherMsgMode === 'bulk') {
+            alert(currentLang === 'am' ? `✅ ለ ${grade} ሴክሽን ${section} ወላጆች በሙሉ የተላከ መልዕክት ተልኳል${hasVoice}!` : `✅ Bulk message sent to ${grade} Section ${section} parents${hasVoice}!`);
+        } else {
+            alert(currentLang === 'am' ? `✅ ለተማሪ ${targetStudent} ወላጅ የተላከ መልዕክት ተልኳል${hasVoice}!` : `✅ Message sent to parent of student ${targetStudent}${hasVoice}!`);
+        }
+
+        document.getElementById('teacher_msg_text').value = '';
+        document.getElementById('t_audio_preview').style.display = 'none';
+        document.getElementById('t_rec_status').innerText = '';
+        teacherAudioBlob = null;
+        teacherAudioBase64 = null;
+
+        checkAndDisplayTeacherMessage();
+    }
+
+    async function clearTeacherMessage() {
+        const school = document.getElementById('select_school').value;
+        const grade = document.getElementById('t_select_grade').value;
+        const section = document.getElementById('t_select_section').value;
+        const selectedStudent = document.getElementById('t_target_student').value;
+
+        if (currentTeacherMsgMode === 'single' && !selectedStudent) {
+            alert(currentLang === 'am' ? 'እባክዎን ለማጥፋት አስቀድመው ተማሪ ይምረጡ!' : 'Please select a student first to clear their message!');
+            return;
+        }
+
+        const confirmMsg = currentLang === 'am' 
+            ? (currentTeacherMsgMode === 'bulk' ? `የ${grade} ሴክሽን ${section} በጅምላ የተላኩ መልዕክቶችን በሙሉ ማጥፋት ይፈልጋሉ?` : `ለተማሪ ${selectedStudent} የተላኩ መልዕክቶችን ማጥፋት ይፈልጋሉ?`)
+            : 'Are you sure you want to delete this message?';
+
+        if (confirm(confirmMsg)) {
+            let savedMessages = await dbGetAll('messages');
+            
+            for (let m of savedMessages) {
+                const sameContext = m.school === school && m.grade === grade && m.section === section;
+                if (sameContext) {
+                    if (currentTeacherMsgMode === 'bulk' && m.mode === 'bulk') {
+                        await dbDelete('messages', m.id);
+                    } else if (currentTeacherMsgMode === 'single' && m.mode === 'single' && m.targetStudent === selectedStudent) {
+                        await dbDelete('messages', m.id);
+                    }
+                }
+            }
+
+            alert(currentLang === 'am' ? '🗑️ መልዕክቱ በተሳካ ሁኔታ ተሰርዟል!' : '🗑️ Message deleted successfully!');
+            checkAndDisplayTeacherMessage();
+        }
+    }
+
+    async function checkAndDisplayTeacherMessage() {
+        const school = document.getElementById('select_school').value;
+        const grade = document.getElementById('p_select_grade').value;
+        const section = document.getElementById('p_select_section').value;
+        const selectedStudent = document.getElementById('p_select_student').value;
+        const banner = document.getElementById('parent_teacher_msg_banner');
+        const detailsContainer = document.getElementById('parent_msg_details');
+
+        let savedMessages = await dbGetAll('messages');
+
+        let relevantMessages = savedMessages.filter(m => 
+            m.school === school && 
+            m.grade === grade && 
+            m.section === section && 
+            (m.mode === 'bulk' || (m.mode === 'single' && m.targetStudent === selectedStudent))
+        );
+
+        if (relevantMessages.length > 0) {
+            let latestMsg = relevantMessages[relevantMessages.length - 1];
+            banner.style.display = 'block';
+
+            let audioHtml = latestMsg.audio ? `<br><audio controls src="${latestMsg.audio}" style="width:100%; margin-top:10px;"></audio>` : '';
+            let targetHtml = latestMsg.mode === 'single' ? `<span style="color:#7e22ce; font-weight:bold;">[ለተማሪ ${latestMsg.targetStudent} የወጣ ነጠላ መልዕክት]</span><br>` : `<span style="color:#0284c7; font-weight:bold;">[ለክፉሉ ወላጆች በሙሉ የተላከ]</span><br>`;
+
+            detailsContainer.innerHTML = `
+                ${targetHtml}
+                <strong>🧑‍🏫 መምህር፡</strong> ${latestMsg.teacherName} (${latestMsg.teacherSubject})<br>
+                <strong>📅 ቀን፡</strong> ${latestMsg.date}<br>
+                <div style="background:#fff; padding:10px; border-radius:5px; margin-top:8px; border-left:4px solid #ef4444;">
+                    ${latestMsg.text ? latestMsg.text : '<i>(በድምፅ የተቀረጸ መልዕክት)</i>'}
+                    ${audioHtml}
+                </div>
+            `;
+        } else {
+            banner.style.display = 'none';
+        }
+    }
+
+    async function checkUnreadNotification() {
+        let savedMessages = await dbGetAll('messages');
+        if (savedMessages.length > 0) {
+            document.getElementById('parent_noti_badge').style.display = 'inline-block';
+        }
+    }
+
+    function toggleTeacherMode(mode) {
+        const bulkBox = document.getElementById('bulk_register_box');
+        const singleBox = document.getElementById('single_register_box');
+        const buttons = document.querySelectorAll('.sub-tab-btn');
+
+        if (mode === 'bulk') {
+            bulkBox.style.display = 'block';
+            singleBox.style.display = 'none';
+            buttons[0].classList.add('active');
+            buttons[1].classList.remove('active');
+        } else {
+            bulkBox.style.display = 'none';
+            singleBox.style.display = 'block';
+            buttons[0].classList.remove('active');
+            buttons[1].classList.add('active');
+        }
+    }
+
+    async function saveBulkStudents() {
+        const school = document.getElementById('select_school').value;
+        const grade = document.getElementById('t_select_grade').value;
+        const section = document.getElementById('t_select_section').value;
+        const rawText = document.getElementById('bulk_paste_input').value.trim();
+
+        if (!rawText) { 
+            alert(currentLang === 'am' ? 'እባክዎን የተማሪ ስሞችን ያስገቡ!' : 'Please enter student names!'); 
+            return; 
+        }
+
+        let names = rawText.includes(',') ? rawText.split(',') : rawText.split('\n');
+        let count = 0;
+
+        for (let item of names) {
+            let name = item.trim();
+            if (name) {
+                await dbPut('students', { id: Date.now() + Math.random(), school, grade, section, name, age: '-', gender: 'ወንድ', phone: '-' });
+                count++;
+            }
+        }
+
+        alert(currentLang === 'am' ? `${count} ተማሪዎች በጅምላ ተመዝግበዋል!` : `${count} students registered successfully!`);
+        document.getElementById('bulk_paste_input').value = '';
+        loadTeacherRoster();
+    }
+
+    async function saveSingleStudent() {
+        const school = document.getElementById('select_school').value;
+        const grade = document.getElementById('t_select_grade').value;
+        const section = document.getElementById('t_select_section').value;
+        const name = document.getElementById('single_name').value.trim();
+        const age = document.getElementById('single_age').value.trim() || '-';
+        const gender = document.getElementById('single_gender').value;
+        const phone = document.getElementById('single_phone').value.trim() || '-';
+
+        if (!name) { 
+            alert(currentLang === 'am' ? 'እባክዎን የተማሪውን ሙሉ ስም ያስገቡ!' : 'Please enter student full name!'); 
+            return; 
+        }
+
+        await dbPut('students', { id: Date.now(), school, grade, section, name, age, gender, phone });
+        
+        alert(currentLang === 'am' ? `ተማሪ ${name} በተሳካ ሁኔታ ተመዝግቧል!` : `Student ${name} registered successfully!`);
+        document.getElementById('single_name').value = '';
+        document.getElementById('single_age').value = '';
+        document.getElementById('single_phone').value = '';
+        loadTeacherRoster();
+    }
+
+    async function loadTeacherRoster() {
+        const school = document.getElementById('select_school').value;
+        const grade = document.getElementById('t_select_grade').value;
+        const section = document.getElementById('t_select_section').value;
+        const container = document.getElementById('teacher_table_container');
+        const t = translations[currentLang];
+
+        document.getElementById('teacher_table_title').innerText = currentLang === 'am' 
+            ? `📋 የ${school} - ${grade} ሴክሽን ${section} የተማሪዎች መዝገብ` 
+            : `📋 ${school} - ${grade} Section ${section} Student Roster`;
+
+        let students = await dbGetAll('students');
+        let filtered = students.filter(s => s.school === school && s.grade === grade && s.section === section);
+
+        if (filtered.length === 0) {
+            container.innerHTML = `<div style="text-align:center; padding:20px; color:#777; background:#fff; border:1px solid #cbd5e1; border-radius:4px;">${t.no_student}</div>`;
+            return;
+        }
+
+        let html = `<table><thead><tr><th>${t.th_no}</th><th>${t.th_name}</th><th>${t.th_age}</th><th>${t.th_gender}</th><th>${t.th_phone}</th><th>${t.th_action}</th></tr></thead><tbody>`;
+        filtered.forEach((s, index) => {
+            const isFemale = s.gender === 'ሴት' || s.gender === 'Female' || s.gender === 'Dhalaa';
+            const genderLabel = isFemale ? (currentLang === 'am' ? 'ሴት' : (currentLang === 'om' ? 'Dhalaa' : 'Female')) : (currentLang === 'am' ? 'ወንድ' : (currentLang === 'om' ? 'Dhiira' : 'Male'));
+            const genderBadge = isFemale ? `<span class="badge-female">${genderLabel}</span>` : `<span class="badge-male">${genderLabel}</span>`;
+            html += `<tr><td>${index + 1}</td><td><strong>${s.name}</strong></td><td>${s.age}</td><td>${genderBadge}</td><td>${s.phone}</td><td><button class="btn-del" onclick="deleteStudent(${s.id})">${t.btn_del}</button></td></tr>`;
+        });
+        html += '</tbody></table>';
+        container.innerHTML = html;
+    }
+
+    async function deleteStudent(id) {
+        const confirmMsg = currentLang === 'am' ? 'ይህንን ተማሪ ከሰንጠረዡ መሰረዝ ይፈልጋሉ?' : 'Are you sure you want to delete this student?';
+        if (confirm(confirmMsg)) {
+            await dbDelete('students', id);
+            loadTeacherRoster();
+        }
+    }
+
+    async function filterParentStudents() {
+        const school = document.getElementById('select_school').value;
+        const grade = document.getElementById('p_select_grade').value;
+        const section = document.getElementById('p_select_section').value;
+        const studentSelect = document.getElementById('p_select_student');
+        const t = translations[currentLang];
+
+        let students = await dbGetAll('students');
+        let filtered = students.filter(s => s.school === school && s.grade === grade && s.section === section);
+
+        studentSelect.innerHTML = `<option value="">${t.opt_select_student}</option>`;
+        filtered.forEach(s => {
+            studentSelect.innerHTML += `<option value="${s.name}">${s.name}</option>`;
+        });
+
+        checkAndDisplayTeacherMessage();
+    }
+
+    /* 📩 የወላጅ ምላሽ እና የክፍያ ደረሰኝ ለአድሚን/ቴሌግራም መላኪያ */
+    async function submitParentResponse() {
+        const school = document.getElementById('select_school').value;
+        const grade = document.getElementById('p_select_grade').value;
+        const section = document.getElementById('p_select_section').value;
+        const studentName = document.getElementById('p_select_student').value;
+        const refNo = document.getElementById('parent_ref_no').value.trim();
+        const feedback = document.getElementById('parent_feedback').value.trim();
+
+        if (!studentName) {
+            alert(currentLang === 'am' ? '⛔ እባክዎን አስቀድመው የልጅዎን ስም ይምረጡ!' : '⛔ Please select your child name first!');
+            return;
+        }
+
+        if (!refNo) {
+            alert(currentLang === 'am' ? '⛔ ክፍያው ግዴታ ነው! ምላሽ ለመላክ አስቀድመው 30 ብር በመክፈል የደረሰኝ ቁጥሩን (Ref No.) ማስገባት አለብዎት።' : '⛔ Payment required! Please enter the transaction Ref No. after paying 30 ETB.');
+            return;
+        }
+
+        const dateStr = new Date().toLocaleString();
+
+        let parentResponseObj = {
+            id: Date.now(),
+            school, grade, section, studentName, refNo, feedback,
+            audio: parentAudioBase64,
+            date: dateStr
+        };
+
+        await dbPut('responses', parentResponseObj);
+
+        // 📲 ወደ ቴሌግራም ቦት የክፍያ ደረሰኝ እና የወላጅ ምላሽ መላክ
+        let tgCaption = `💳 <b><u>አዲስ የወላጅ ክፍያ እና ምላሽ</u></b>\n\n` +
+                        `🏫 <b>ትምህርት ቤት፡</b> ${school}\n` +
+                        `📚 <b>ክፍል፡</b> ${grade} | <b>ሴክሽን፡</b> ${section}\n` +
+                        `👤 <b>የተማሪ ስም፡</b> ${studentName}\n` +
+                        `🧾 <b>የደረሰኝ ቁጥር (Ref No.)፡</b> <code>${refNo}</code>\n` +
+                        `📅 <b>ቀን፡</b> ${dateStr}\n\n` +
+                        `📝 <b>የወላጅ አስተያየት፡</b>\n${feedback || '<i>(አስተያየት አልተፃፈም)</i>'}`;
+
+        if (parentAudioBlob) {
+            await sendTelegramAudio(parentAudioBlob, tgCaption);
+        } else {
+            await sendTelegramMessage(tgCaption);
+        }
+
+        let hasVoice = parentAudioBlob ? " 🎙️" : "";
+        alert(currentLang === 'am' 
+            ? `✅ እናመሰግናለን! የ ${studentName} ወላጅ ምላሽዎ${hasVoice} እና የክፍያ ደረሰኝ ቁጥር (${refNo}) ለአድሚኑ በተሳካ ሁኔታ ተልኳል።`
+            : `✅ Thank you! Parent response for ${studentName}${hasVoice} and payment ref (${refNo}) submitted to Admin successfully.`);
+
+        document.getElementById('parent_ref_no').value = '';
+        document.getElementById('parent_feedback').value = '';
+        document.getElementById('p_audio_preview').style.display = 'none';
+        document.getElementById('p_rec_status').innerText = '';
+        parentAudioBlob = null;
+        parentAudioBase64 = null;
+    }
+</script>
+
+</body>
+</html>
+<!DOCTYPE html>
+<html lang="am">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>የምዝገባ ፎርም</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    .form-group { margin-bottom: 15px; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    input, select { width: 100%; padding: 8px; box-sizing: border-box; }
+    button { padding: 10px 15px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
+    #statusMessage { margin-top: 15px; font-weight: bold; color: green; }
+  </style>
+</head>
+<body>
+
+  <h2>የተማሪዎች እና የመምህሩ መረጃ መሙያ</h2>
+
+  <form id="registrationForm">
+    <div class="form-group">
+      <label for="teacherName">የመምህሩ ስም፡</label>
+      <input type="text" id="teacherName" name="teacherName" required>
+    </div>
+
+    <div class="form-group">
+      <label for="studentName">የተማሪው ስም፡</label>
+      <input type="text" id="studentName" name="studentName" required>
+    </div>
+
+    <div class="form-group">
+      <label for="phone">ስልክ ቁጥር፡</label>
+      <input type="tel" id="phone" name="phone" required>
+    </div>
+
+    <button type="submit">መረጃውን ላክ</button>
+  </form>
+
+  <div id="statusMessage"></div>
+
+  <script>
+    document.getElementById("registrationForm").addEventListener("submit", function(event) {
+      // 1. ገጹ Refresh እንዳይል እና መረጃው እንዳይጠፋ ያደርጋል
+      event.preventDefault();
+
+      const statusDiv = document.getElementById("statusMessage");
+      statusDiv.innerText = "መረጃው እየተላከ ነው...";
+
+      // 2. የፎርሙን መረጃዎች መሰብሰብ
+      let formData = new FormData(this);
+
+      // 3. መረጃውን ወደ API / AppScript መላክ
+      // "YOUR_WEB_APP_URL" በሚለው ቦታ የራሶትን መላኪያ URL ይተኩ
+      fetch("YOUR_WEB_APP_URL", {
+        method: "POST",
+        body: formData
+      })
+      .then(response => {
+        statusDiv.innerText = "መረጃው በተሳካ ሁኔታ ተልኳል! (መረጃው ከገጹ ላይ አልጠፋም)";
+        
+        // ማሳሰቢያ፡ እዚህ ውስጥ this.reset() አልተጻፈም! 
+        // ስለዚህ የተማሪና የመምህሩ መረጃ በሳጥኖቹ ውስጥ እንዳለ ይቆያል።
+      })
+      .catch(error => {
+        statusDiv.style.color = "red";
+        statusDiv.innerText = "ስህተት ተፈጥሯል፡ " + error;
+      });
+    });
+  </script>
+
+</body>
+</html>
